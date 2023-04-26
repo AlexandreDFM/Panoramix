@@ -1,0 +1,7 @@
+.idea
+.vscode
+*.o
+*.so
+*.out
+vgcore.*
+coding-style
