@@ -21,11 +21,9 @@ void *druid_fct(void *values)
     while (v->nb_refills > 0) {
         sem_wait(v->sem2);
         if (v->pot_size == 0) {
-            v->pot_size = pot_size;
-            v->nb_refills--;
+            v->pot_size = pot_size, v->nb_refills--;
             printf("Druid : Ah! Yes, yes, I'm awake! Working on it! Beware I"
-            " can only make %d more refills after this one.\n",
-            v->nb_refills);
+            " can only make %d more refills after this one.\n", v->nb_refills);
             sem_post(v->sem);
         }
     }
@@ -37,26 +35,23 @@ void *druid_fct(void *values)
 void *villager_fct(void *values)
 {
     values_t *v = (values_t *) values;
-    printf("There are %d villagers, %d fights, %d refills and the pot size"
-    " is %d.\n", v->nb_villagers, v->nb_fights, v->nb_refills, v->pot_size);
-    int id = v->id; v->id = id + 1; int nb_fights = v->nb_fights;
+    int id = v->id, nb_fights = v->nb_fights; v->id = id + 1;
     printf("Villager %d: Going into battle !\n", id);
     while (nb_fights > 0) {
+        pthread_mutex_lock(&v->mutex);
         if (v->pot_size > 0) {
-            pthread_mutex_lock(&v->mutex);
-            v->pot_size -= 1;
-            printf("Villager %d: I need a drink... I see %d"
-            " servings left.\n", id, v->pot_size);
-            nb_fights -= 1;
+            v->pot_size -= 1, nb_fights -= 1;
+            printf("Villager %d: I need a drink... I see %d servings left.\n",
+            id, v->pot_size);
             printf("Villager %d: Take that roman scum! Only %d left.\n",
             id, nb_fights);
-            pthread_mutex_unlock(&v->mutex);
         } else {
-            pthread_mutex_lock(&v->mutex);
             printf("Villager %d: Hey Pano wake up ! We need more potion.\n",
-            id); sem_post(v->sem2); sem_wait(v->sem);
-            pthread_mutex_unlock(&v->mutex);
+            id);
+            sem_post(v->sem2);
+            sem_wait(v->sem);
         }
+        pthread_mutex_unlock(&v->mutex);
     }
     printf("Villager %d: I'm going to sleep now.\n", id); pthread_exit(NULL);
 }
@@ -100,7 +95,6 @@ int main(int argc, char **argv)
     values_t *values = malloc(sizeof(values_t));
     values->pot_size = pot_size; values->nb_fights = nb_fights;
     values->nb_refills = nb_refills; values->nb_villagers = nb_villagers;
-    values->id = 0;
     panoramix(values);
     return 0;
 }

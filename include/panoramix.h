@@ -18,12 +18,12 @@
 
 typedef struct values_s {
     int id;
-    sem_t *sem;
-    sem_t *sem2;
     int pot_size;
     int nb_fights;
     int nb_refills;
     int nb_villagers;
+    sem_t *sem;
+    sem_t *sem2;
     pthread_mutex_t mutex;
 } values_t;
 
