@@ -22,8 +22,8 @@ typedef struct values_s {
     int nb_fights;
     int nb_refills;
     int nb_villagers;
-    sem_t *sem;
-    sem_t *sem2;
+    sem_t *sem_druid;
+    sem_t *sem_villagers;
     pthread_mutex_t mutex;
 } values_t;
 

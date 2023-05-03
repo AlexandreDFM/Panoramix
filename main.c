@@ -19,15 +19,15 @@ void *druid_fct(void *values)
     int pot_size = v->pot_size;
     printf("Druid : I'm ready... but sleepy...\n");
     while (v->nb_refills > 0) {
-        sem_wait(v->sem2);
+        sem_wait(v->sem_druid);
         if (v->pot_size == 0) {
             v->pot_size = pot_size, v->nb_refills--;
             printf("Druid : Ah! Yes, yes, I'm awake! Working on it! Beware I"
             " can only make %d more refills after this one.\n", v->nb_refills);
-            sem_post(v->sem);
+            sem_post(v->sem_villagers);
         }
     }
-    sem_post(v->sem);
+    sem_post(v->sem_villagers);
     printf("Druid : I'm out of viscum. I'm going back to... zZz\n");
     pthread_exit(NULL);
 }
@@ -40,18 +40,18 @@ void *villager_fct(void *values)
     while (nb_fights > 0) {
         pthread_mutex_lock(&v->mutex);
         if (v->pot_size > 0) {
-            v->pot_size -= 1, nb_fights -= 1;
             printf("Villager %d: I need a drink... I see %d servings left.\n",
-            id, v->pot_size);
+            id, v->pot_size); v->pot_size -= 1;
+            pthread_mutex_unlock(&v->mutex);
+            nb_fights -= 1;
             printf("Villager %d: Take that roman scum! Only %d left.\n",
             id, nb_fights);
         } else {
             printf("Villager %d: Hey Pano wake up ! We need more potion.\n",
             id);
-            sem_post(v->sem2);
-            sem_wait(v->sem);
+            sem_post(v->sem_druid); sem_wait(v->sem_villagers);
+            pthread_mutex_unlock(&v->mutex);
         }
-        pthread_mutex_unlock(&v->mutex);
     }
     printf("Villager %d: I'm going to sleep now.\n", id); pthread_exit(NULL);
 }
@@ -59,11 +59,11 @@ void *villager_fct(void *values)
 void panoramix(values_t *values)
 {
     pthread_t druid, villagers[values->nb_villagers];
-    values->sem = malloc(sizeof(sem_t));
-    values->sem2 = malloc(sizeof(sem_t));
+    values->sem_villagers = malloc(sizeof(sem_t));
+    values->sem_druid = malloc(sizeof(sem_t));
     values->mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-    sem_init(values->sem, 0, 0);
-    sem_init(values->sem2, 0, 0);
+    sem_init(values->sem_villagers, 0, 0);
+    sem_init(values->sem_druid, 0, 0);
     pthread_mutex_init(&values->mutex, NULL);
     pthread_create(&druid, NULL, &druid_fct, values);
     for (int i = 0; i < values->nb_villagers; i++) {
