@@ -17,18 +17,18 @@ void *druid_fct(void *values)
 {
     values_t *v = (values_t *)values;
     int pot_size = v->pot_size;
-    printf("Druid : I'm ready... but sleepy...\n");
+    printf("Druid: I'm ready... but sleepy...\n");
     while (v->nb_refills > 0) {
         sem_wait(v->sem_druid);
         if (v->pot_size == 0) {
             v->pot_size = pot_size, v->nb_refills--;
-            printf("Druid : Ah! Yes, yes, I'm awake! Working on it! Beware I"
+            printf("Druid: Ah! Yes, yes, I'm awake! Working on it! Beware I"
             " can only make %d more refills after this one.\n", v->nb_refills);
             sem_post(v->sem_villagers);
         }
     }
     sem_post(v->sem_villagers);
-    printf("Druid : I'm out of viscum. I'm going back to... zZz\n");
+    printf("Druid: I'm out of viscum. I'm going back to... zZz\n");
     pthread_exit(NULL);
 }
 
@@ -36,7 +36,7 @@ void *villager_fct(void *values)
 {
     values_t *v = (values_t *) values;
     int id = v->id, nb_fights = v->nb_fights; v->id = id + 1;
-    printf("Villager %d: Going into battle !\n", id);
+    printf("Villager %d: Going into battle!\n", id);
     while (nb_fights > 0) {
         pthread_mutex_lock(&v->mutex);
         if (v->pot_size > 0) {
@@ -47,7 +47,7 @@ void *villager_fct(void *values)
             printf("Villager %d: Take that roman scum! Only %d left.\n",
             id, nb_fights);
         } else {
-            printf("Villager %d: Hey Pano wake up ! We need more potion.\n",
+            printf("Villager %d: Hey Pano wake up! We need more potion.\n",
             id);
             sem_post(v->sem_druid); sem_wait(v->sem_villagers);
             pthread_mutex_unlock(&v->mutex);
