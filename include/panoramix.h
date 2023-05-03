@@ -25,6 +25,7 @@ typedef struct values_s {
     sem_t *sem_druid;
     sem_t *sem_villagers;
     pthread_mutex_t mutex;
+    pthread_barrier_t barrier;
 } values_t;
 
 
